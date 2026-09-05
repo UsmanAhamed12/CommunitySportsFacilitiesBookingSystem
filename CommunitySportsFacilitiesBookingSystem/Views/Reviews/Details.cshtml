@@ -1,0 +1,82 @@
+﻿@model CommunitySportsFacilitiesBookingSystem.Models.Review
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Review</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.OverallRating)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OverallRating)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ConditionRating)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ConditionRating)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.AmenitiesRating)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.AmenitiesRating)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReviewTitle)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReviewTitle)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReviewComment)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReviewComment)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SubmittedAt)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SubmittedAt)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsApproved)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsApproved)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Booking.Purpose)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Booking.Purpose)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.ReviewID }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

@@ -1,0 +1,90 @@
+﻿@model CommunitySportsFacilitiesBookingSystem.Models.Inquiry
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Inquiry</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderEmail)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderEmail)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderPhone)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderPhone)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.InquirySubject)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.InquirySubject)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.InquiryMessage)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.InquiryMessage)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SubmittedAt)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SubmittedAt)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.InquiryStatus)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.InquiryStatus)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ResponseMessage)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ResponseMessage)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RespondedAt)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RespondedAt)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.InquiryID }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

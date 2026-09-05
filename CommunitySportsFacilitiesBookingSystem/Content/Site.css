@@ -1,0 +1,153 @@
+﻿body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Override the default bootstrap behavior where horizontal description lists 
+   will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    max-width: 280px;
+}
+
+
+body {
+    padding-top: 50px;
+    padding-bottom: 0;
+    background: #f4f7f6;
+    color: #24313d;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.body-content {
+    width: 100%;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.navbar-inverse {
+    border: none;
+    background: linear-gradient(90deg, #061b2c, #0b3d35);
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.20);
+}
+
+    .navbar-inverse .navbar-brand {
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .navbar-inverse .navbar-nav > li > a {
+        color: #dcece6;
+        font-weight: 500;
+    }
+
+        .navbar-inverse .navbar-nav > li > a:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.10);
+        }
+
+h1, h2, h3 {
+    color: #0b3d35;
+}
+
+.sports-hero h1 {
+    color: #ffffff;
+}
+
+.btn-primary {
+    border-color: #087f5b;
+    background: #087f5b;
+}
+
+    .btn-primary:hover,
+    .btn-primary:focus {
+        border-color: #056c4d;
+        background: #056c4d;
+    }
+
+.btn-success {
+    border-color: #22a06b;
+    background: #22a06b;
+}
+
+.form-control {
+    min-height: 42px;
+    border: 1px solid #cad5d1;
+    border-radius: 6px;
+    box-shadow: none;
+}
+
+    .form-control:focus {
+        border-color: #159957;
+        box-shadow: 0 0 0 3px rgba(21, 153, 87, 0.12);
+    }
+
+.panel,
+.table {
+    background: #ffffff;
+}
+
+.panel {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(6, 27, 44, 0.10);
+}
+
+.panel-heading {
+    border-radius: 10px 10px 0 0;
+}
+
+.table thead {
+    color: #ffffff;
+    background: #0b3d35;
+}
+
+.page-header {
+    border-bottom: 2px solid #dce8e3;
+}
+
+.alert {
+    border-radius: 7px;
+}
+
+footer {
+    margin-top: 50px;
+    padding: 25px 15px;
+    color: #dcece6;
+    text-align: center;
+    background: #061b2c;
+}
+
+@media (max-width: 767px) {
+    .sports-hero {
+        min-height: 500px;
+        padding: 90px 25px;
+        background-position: 62% center;
+    }
+
+        .sports-hero h1 {
+            font-size: 38px;
+        }
+
+        .sports-hero p {
+            font-size: 17px;
+        }
+
+    .table-responsive {
+        border: none;
+    }
+}

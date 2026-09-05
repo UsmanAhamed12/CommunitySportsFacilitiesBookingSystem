@@ -1,0 +1,98 @@
+﻿@model IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.Review>
+
+@{
+    ViewBag.Title = "Facility Reviews";
+}
+
+<div class="container">
+    <div class="page-header">
+        <h2>Community Facility Reviews</h2>
+        <p>Read experiences shared by registered members.</p>
+    </div>
+
+    @using (Html.BeginForm("Index", "Reviews", FormMethod.Get))
+    {
+        <div class="row">
+            <div class="col-md-5">
+                <label>Facility</label>
+
+                @Html.DropDownList(
+                    "facilityId",
+                    ViewBag.Facilities as SelectList,
+                    "All Facilities",
+                    new { @class = "form-control" })
+            </div>
+
+            <div class="col-md-5">
+                <label>Search Reviews</label>
+
+                <input type="text"
+                       name="search"
+                       value="@ViewBag.Search"
+                       class="form-control"
+                       placeholder="Search title, comment or facility" />
+            </div>
+
+            <div class="col-md-2">
+                <label>&nbsp;</label>
+
+                <button type="submit"
+                        class="btn btn-primary form-control">
+                    Search
+                </button>
+            </div>
+        </div>
+    }
+
+    <br />
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            No approved reviews matched your search.
+        </div>
+    }
+    else
+    {
+        foreach (var item in Model)
+        {
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>
+                        @item.Booking.Facility.FacilityName
+                    </strong>
+
+                    <span class="pull-right">
+                        @item.OverallRating / 5
+                    </span>
+                </div>
+
+                <div class="panel-body">
+                    @if (!string.IsNullOrWhiteSpace(item.ReviewTitle))
+                    {
+                        <h4>@item.ReviewTitle</h4>
+                    }
+
+                    <p>@item.ReviewComment</p>
+
+                    <p>
+                        <strong>Condition:</strong>
+                        @item.ConditionRating / 5
+
+                        &nbsp;|&nbsp;
+
+                        <strong>Amenities:</strong>
+                        @item.AmenitiesRating / 5
+                    </p>
+
+                    <small class="text-muted">
+                        Reviewed by
+                        @item.Booking.Member.FirstName
+                        on
+                        @item.SubmittedAt.ToString("dd MMM yyyy")
+                    </small>
+                </div>
+            </div>
+        }
+    }
+</div>

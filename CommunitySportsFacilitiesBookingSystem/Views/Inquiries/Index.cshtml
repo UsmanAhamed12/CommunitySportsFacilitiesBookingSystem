@@ -1,0 +1,81 @@
+﻿@model IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.Inquiry>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.SenderName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.SenderEmail)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.SenderPhone)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.InquirySubject)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.InquiryMessage)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.SubmittedAt)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.InquiryStatus)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ResponseMessage)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.RespondedAt)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.SenderName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.SenderEmail)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.SenderPhone)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.InquirySubject)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.InquiryMessage)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.SubmittedAt)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.InquiryStatus)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ResponseMessage)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.RespondedAt)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.InquiryID }) |
+            @Html.ActionLink("Details", "Details", new { id=item.InquiryID }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.InquiryID })
+        </td>
+    </tr>
+}
+
+</table>

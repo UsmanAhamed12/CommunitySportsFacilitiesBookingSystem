@@ -1,0 +1,114 @@
+﻿@model CommunitySportsFacilitiesBookingSystem.ViewModels.InquiryCreateViewModel
+
+@{
+    ViewBag.Title = "Contact the Sports Council";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-7 col-md-offset-2">
+            <h2>Contact the Sports Council</h2>
+
+            <p>
+                Send us a question about facilities, programmes
+                or community membership.
+            </p>
+
+            @if (TempData["InquirySuccess"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["InquirySuccess"]
+                </div>
+            }
+
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                @Html.ValidationSummary(
+                    true,
+                    "",
+                    new { @class = "text-danger" })
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.SenderName)
+
+                    @Html.TextBoxFor(
+                        m => m.SenderName,
+                        new { @class = "form-control" })
+
+                    @Html.ValidationMessageFor(
+                        m => m.SenderName,
+                        "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.SenderEmail)
+
+                    @Html.TextBoxFor(
+                        m => m.SenderEmail,
+                        new
+                        {
+                            @class = "form-control",
+                            type = "email"
+                        })
+
+                    @Html.ValidationMessageFor(
+                        m => m.SenderEmail,
+                        "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.SenderPhone)
+
+                    @Html.TextBoxFor(
+                        m => m.SenderPhone,
+                        new { @class = "form-control" })
+
+                    @Html.ValidationMessageFor(
+                        m => m.SenderPhone,
+                        "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.InquirySubject)
+
+                    @Html.TextBoxFor(
+                        m => m.InquirySubject,
+                        new { @class = "form-control" })
+
+                    @Html.ValidationMessageFor(
+                        m => m.InquirySubject,
+                        "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.InquiryMessage)
+
+                    @Html.TextAreaFor(
+                        m => m.InquiryMessage,
+                        6,
+                        50,
+                        new { @class = "form-control" })
+
+                    @Html.ValidationMessageFor(
+                        m => m.InquiryMessage,
+                        "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    Send Inquiry
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

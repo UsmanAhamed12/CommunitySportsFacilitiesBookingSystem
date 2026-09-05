@@ -1,0 +1,51 @@
+﻿@model IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.MemberSport>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.IsPrimaryPreference)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.SelectedAt)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Member.FirstName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Sport.SportName)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.IsPrimaryPreference)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.SelectedAt)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Member.FirstName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Sport.SportName)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.MemberSportID }) |
+            @Html.ActionLink("Details", "Details", new { id=item.MemberSportID }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.MemberSportID })
+        </td>
+    </tr>
+}
+
+</table>

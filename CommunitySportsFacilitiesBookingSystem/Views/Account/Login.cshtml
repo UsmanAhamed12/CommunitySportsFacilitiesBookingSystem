@@ -1,0 +1,56 @@
+﻿@model CommunitySportsFacilitiesBookingSystem.ViewModels.LoginViewModel
+
+@{
+    ViewBag.Title = "Member Sign In";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <h2>Member Sign In</h2>
+            <p>Sign in to search and book community sports facilities.</p>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "",
+                    new { @class = "text-danger" })
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Email)
+                    @Html.TextBoxFor(m => m.Email,
+                        new { @class = "form-control", type = "email" })
+                    @Html.ValidationMessageFor(m => m.Email, "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Password)
+                    @Html.PasswordFor(m => m.Password,
+                        new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.Password, "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Sign In
+                </button>
+
+                @Html.ActionLink("Create membership",
+                    "Register", "Account", null,
+                    new { @class = "btn btn-link" })
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

@@ -1,0 +1,143 @@
+﻿@model IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.Facility>
+
+@{
+    ViewBag.Title = "Search Facilities";
+}
+
+<div class="container">
+    <h2>Find a Sports Facility</h2>
+    <p>Search by facility type, sport, location, date and time.</p>
+
+    @using (Html.BeginForm("Index", "Facilities", FormMethod.Get))
+    {
+        <div class="row">
+            <div class="col-md-2">
+                <label>Facility Type</label>
+                @Html.DropDownList(
+                    "facilityTypeId",
+                    ViewBag.FacilityTypes as SelectList,
+                    "All Types",
+                    new { @class = "form-control" })
+            </div>
+
+            <div class="col-md-2">
+                <label>Sport</label>
+                @Html.DropDownList(
+                    "sportId",
+                    ViewBag.Sports as SelectList,
+                    "All Sports",
+                    new { @class = "form-control" })
+            </div>
+
+            <div class="col-md-2">
+                <label>City</label>
+                <input name="city"
+                       value="@ViewBag.City"
+                       class="form-control"
+                       placeholder="Enter city" />
+            </div>
+
+            <div class="col-md-2">
+                <label>Date</label>
+                <input type="date"
+                       name="bookingDate"
+                       value="@ViewBag.BookingDate"
+                       class="form-control" />
+            </div>
+
+            <div class="col-md-2">
+                <label>Start Time</label>
+                <input type="time"
+                       name="startTime"
+                       value="@ViewBag.StartTime"
+                       class="form-control" />
+            </div>
+
+            <div class="col-md-2">
+                <label>End Time</label>
+                <input type="time"
+                       name="endTime"
+                       value="@ViewBag.EndTime"
+                       class="form-control" />
+            </div>
+        </div>
+
+        <br />
+
+        <button type="submit" class="btn btn-primary">
+            Search Facilities
+        </button>
+
+        @Html.ActionLink(
+            "Clear Search",
+            "Index",
+            null,
+            new { @class = "btn btn-default" })
+    }
+
+    <hr />
+
+    <div class="row">
+        @foreach (var facility in Model)
+        {
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <strong>@facility.FacilityName</strong>
+                    </div>
+
+                    <div class="panel-body">
+                        <p>
+                            <strong>Type:</strong>
+                            @facility.FacilityType.TypeName
+                        </p>
+
+                        <p>
+                            <strong>Location:</strong>
+                            @facility.City
+                        </p>
+
+                        <p>
+                            <strong>Capacity:</strong>
+                            @facility.Capacity
+                        </p>
+
+                        @if (Session["MemberID"] != null)
+                        {
+                            <p>
+                                <strong>Hourly rate:</strong>
+                                @facility.HourlyRate.ToString("N2")
+                            </p>
+
+                            @Html.ActionLink(
+                                "Book Facility",
+                                "Create",
+                                "Bookings",
+                                new { facilityId = facility.FacilityID },
+                                new { @class = "btn btn-success" })
+                        }
+                        else
+                        {
+                            <p class="text-muted">
+                                Sign in to view booking details.
+                            </p>
+
+                            @Html.ActionLink(
+                                "Sign In to Book",
+                                "Login",
+                                "Account",
+                                null,
+                                new { @class = "btn btn-primary" })
+                        }
+
+                        @Html.ActionLink(
+                            "Details",
+                            "Details",
+                            new { id = facility.FacilityID },
+                            new { @class = "btn btn-default" })
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

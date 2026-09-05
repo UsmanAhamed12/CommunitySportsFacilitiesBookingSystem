@@ -1,0 +1,175 @@
+﻿@{
+    ViewBag.Title = "Community Sports Facilities";
+}
+
+<style>
+    .sports-hero {
+        min-height: 570px;
+        margin: -20px -15px 40px;
+        padding: 120px 8%;
+        color: white;
+        background-image:
+            linear-gradient(
+                90deg,
+                rgba(3, 20, 38, 0.96) 0%,
+                rgba(3, 20, 38, 0.80) 42%,
+                rgba(3, 20, 38, 0.20) 100%
+            ),
+            url('@Url.Content("~/Content/images/sports-hero.png")');
+        background-size: cover;
+        background-position: center;
+    }
+
+    .sports-hero h1 {
+        max-width: 650px;
+        margin-bottom: 20px;
+        font-size: 52px;
+        font-weight: 700;
+        line-height: 1.1;
+    }
+
+    .sports-hero p {
+        max-width: 590px;
+        margin-bottom: 30px;
+        font-size: 20px;
+        line-height: 1.6;
+    }
+
+    .hero-button {
+        margin-right: 10px;
+        margin-bottom: 10px;
+        padding: 12px 24px;
+        font-size: 16px;
+    }
+
+    .feature-section {
+        padding: 20px 0 60px;
+        text-align: center;
+    }
+
+    .feature-card {
+        min-height: 240px;
+        margin-bottom: 25px;
+        padding: 30px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: white;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .feature-card .glyphicon {
+        margin-bottom: 20px;
+        color: #159957;
+        font-size: 40px;
+    }
+
+    .feature-card h3 {
+        font-weight: 600;
+    }
+</style>
+
+<section class="sports-hero">
+    <h1>Play More Live Better</h1>
+
+    <p>
+        Discover and book trusted community sports facilities.
+        Search by sport, location, date and time, then manage
+        your reservations from one convenient place.
+    </p>
+
+    @if (Session["MemberID"] != null)
+    {
+        @Html.ActionLink(
+            "Find a Facility",
+            "Index",
+            "Facilities",
+            null,
+            new { @class = "btn btn-success btn-lg hero-button" })
+
+        @Html.ActionLink(
+            "My Bookings",
+            "MyBookings",
+            "Bookings",
+            null,
+            new { @class = "btn btn-default btn-lg hero-button" })
+    }
+    else
+    {
+        @Html.ActionLink(
+            "Become a Member",
+            "Register",
+            "Account",
+            null,
+            new { @class = "btn btn-success btn-lg hero-button" })
+
+        @Html.ActionLink(
+            "Sign In",
+            "Login",
+            "Account",
+            null,
+            new { @class = "btn btn-default btn-lg hero-button" })
+    }
+</section>
+
+<section class="container feature-section">
+    <h2>Everything You Need to Get Active</h2>
+    <p class="lead">
+        Simple access to local courts, fields, halls and fitness spaces.
+    </p>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="feature-card">
+                <span class="glyphicon glyphicon-search"></span>
+                <h3>Find Facilities</h3>
+                <p>
+                    Search facilities by sport, type, city,
+                    date and available time.
+                </p>
+
+                @Html.ActionLink(
+                    "Search Facilities",
+                    "Index",
+                    "Facilities",
+                    null,
+                    new { @class = "btn btn-primary" })
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-card">
+                <span class="glyphicon glyphicon-calendar"></span>
+                <h3>Book Online</h3>
+                <p>
+                    Reserve a suitable facility and manage
+                    your community sports bookings.
+                </p>
+
+                @Html.ActionLink(
+                    "View My Bookings",
+                    "MyBookings",
+                    "Bookings",
+                    null,
+                    new { @class = "btn btn-primary" })
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-card">
+                <span class="glyphicon glyphicon-star"></span>
+                <h3>Community Reviews</h3>
+                <p>
+                    Read genuine experiences submitted by
+                    members after completed bookings.
+                </p>
+
+                @Html.ActionLink(
+                    "Read Reviews",
+                    "Index",
+                    "Reviews",
+                    null,
+                    new { @class = "btn btn-primary" })
+            </div>
+        </div>
+    </div>
+</section>

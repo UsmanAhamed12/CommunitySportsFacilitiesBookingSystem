@@ -1,0 +1,94 @@
+﻿@model CommunitySportsFacilitiesBookingSystem.ViewModels.ReviewCreateViewModel
+
+@{
+    ViewBag.Title = "Submit Review";
+    var ratings = Enumerable.Range(1, 5)
+        .Select(number => new SelectListItem
+        {
+            Value = number.ToString(),
+            Text = number + " Star" + (number == 1 ? "" : "s")
+        });
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-7 col-md-offset-2">
+            <h2>Review Your Experience</h2>
+
+            <div class="alert alert-info">
+                <strong>Facility:</strong> @Model.FacilityName
+            </div>
+
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.BookingID)
+                @Html.HiddenFor(m => m.FacilityName)
+
+                @Html.ValidationSummary(
+                    true, "", new { @class = "text-danger" })
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.OverallRating)
+                    @Html.DropDownListFor(
+                        m => m.OverallRating,
+                        ratings,
+                        new { @class = "form-control" })
+                    @Html.ValidationMessageFor(
+                        m => m.OverallRating, "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.ConditionRating)
+                    @Html.DropDownListFor(
+                        m => m.ConditionRating,
+                        ratings,
+                        new { @class = "form-control" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.AmenitiesRating)
+                    @Html.DropDownListFor(
+                        m => m.AmenitiesRating,
+                        ratings,
+                        new { @class = "form-control" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.ReviewTitle)
+                    @Html.TextBoxFor(
+                        m => m.ReviewTitle,
+                        new { @class = "form-control" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.ReviewComment)
+                    @Html.TextAreaFor(
+                        m => m.ReviewComment,
+                        5,
+                        50,
+                        new { @class = "form-control" })
+                    @Html.ValidationMessageFor(
+                        m => m.ReviewComment, "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    Submit Review
+                </button>
+
+                @Html.ActionLink(
+                    "Back to My Bookings",
+                    "MyBookings",
+                    "Bookings",
+                    null,
+                    new { @class = "btn btn-default" })
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

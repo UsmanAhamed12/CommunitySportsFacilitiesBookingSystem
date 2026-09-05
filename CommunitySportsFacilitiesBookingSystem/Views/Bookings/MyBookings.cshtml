@@ -1,0 +1,173 @@
+﻿@using System.Collections.Generic
+@model IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.Booking>
+
+@{
+    ViewBag.Title = "My Bookings";
+
+    var reviewedBookingIDs =
+        ViewBag.ReviewedBookingIDs as List<int>
+        ?? new List<int>();
+}
+
+<div class="container">
+    <div class="page-header">
+        <h2>My Facility Bookings</h2>
+        <p>View and manage your upcoming and previous reservations.</p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <p>
+        @Html.ActionLink(
+            "Browse Facilities",
+            "Index",
+            "Facilities",
+            null,
+            new { @class = "btn btn-primary" })
+    </p>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            You have not made any bookings yet.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Facility</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Participants</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th>Options</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var statusClass = "label-info";
+
+                        if (item.BookingStatus == "Confirmed")
+                        {
+                            statusClass = "label-success";
+                        }
+                        else if (item.BookingStatus == "Completed")
+                        {
+                            statusClass = "label-primary";
+                        }
+                        else if (item.BookingStatus == "Cancelled" ||
+                                 item.BookingStatus == "Rejected")
+                        {
+                            statusClass = "label-danger";
+                        }
+                        else if (item.BookingStatus == "Pending")
+                        {
+                            statusClass = "label-warning";
+                        }
+
+                        <tr>
+                            <td>
+                                @if (item.Facility != null)
+                                {
+                                    @item.Facility.FacilityName
+                                }
+                                else
+                                {
+                                    <span>Facility unavailable</span>
+                                }
+                            </td>
+
+                            <td>
+                                @item.BookingDate.ToString("dd MMM yyyy")
+                            </td>
+
+                            <td>
+                                @item.StartTime.ToString(@"hh\:mm")
+                                -
+                                @item.EndTime.ToString(@"hh\:mm")
+                            </td>
+
+                            <td>
+                                @item.NumberOfParticipants
+                            </td>
+
+                            <td>
+                                <span class="label @statusClass">
+                                    @item.BookingStatus
+                                </span>
+                            </td>
+
+                            <td>
+                                @item.TotalAmount.ToString("N2")
+                            </td>
+
+                            <td>
+                                @Html.ActionLink(
+                                    "Details",
+                                    "Details",
+                                    new { id = item.BookingID },
+                                    new
+                                    {
+                                        @class = "btn btn-info btn-xs"
+                                    })
+
+                                @if (item.BookingStatus == "Completed" &&
+                                        !reviewedBookingIDs.Contains(item.BookingID))
+                                {
+                                    @Html.ActionLink(
+                                        "Write Review",
+                                        "Create",
+                                        "Reviews",
+                                        new { bookingId = item.BookingID },
+                                        new { @class = "btn btn-success btn-xs" })
+                                }
+
+                                @if (item.BookingStatus == "Pending" ||
+                                     item.BookingStatus == "Confirmed")
+                                {
+                                    using (Html.BeginForm(
+                                        "Cancel",
+                                        "Bookings",
+                                        new { id = item.BookingID },
+                                        FormMethod.Post,
+                                        new
+                                        {
+                                            style = "display:inline",
+                                            onsubmit =
+                                                "return confirm('Are you sure you want to cancel this booking?');"
+                                        }))
+                                    {
+                                        @Html.AntiForgeryToken()
+
+                                        <button type="submit"
+                                                class="btn btn-danger btn-xs">
+                                            Cancel
+                                        </button>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

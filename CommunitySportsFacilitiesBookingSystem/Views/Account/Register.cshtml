@@ -1,0 +1,125 @@
+﻿@model CommunitySportsFacilitiesBookingSystem.ViewModels.RegisterViewModel
+
+@{
+    ViewBag.Title = "Become a Member";
+    var sports = ViewBag.Sports as
+        IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.Sport>;
+}
+
+<div class="container">
+    <h2>Become a Community Sports Member</h2>
+    <p>Register to search facilities, make bookings and submit reviews.</p>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    @Html.LabelFor(m => m.FirstName)
+                    @Html.TextBoxFor(m => m.FirstName,
+                        new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.FirstName, "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.LastName)
+                    @Html.TextBoxFor(m => m.LastName,
+                        new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.LastName, "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Email)
+                    @Html.TextBoxFor(m => m.Email,
+                        new { @class = "form-control", type = "email" })
+                    @Html.ValidationMessageFor(m => m.Email, "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Phone)
+                    @Html.TextBoxFor(m => m.Phone,
+                        new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.Phone, "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.AddressLine)
+                    @Html.TextBoxFor(m => m.AddressLine,
+                        new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.AddressLine, "",
+                        new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    @Html.LabelFor(m => m.City)
+                    @Html.TextBoxFor(m => m.City,
+                        new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.City, "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.PostalCode)
+                    @Html.TextBoxFor(m => m.PostalCode,
+                        new { @class = "form-control" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Password)
+                    @Html.PasswordFor(m => m.Password,
+                        new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.Password, "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(m => m.ConfirmPassword)
+                    @Html.PasswordFor(m => m.ConfirmPassword,
+                        new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.ConfirmPassword, "",
+                        new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    <label>Preferred Sports</label>
+
+                    @if (sports != null)
+                    {
+                        foreach (var sport in sports)
+                        {
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox"
+                                           name="SelectedSportIDs"
+                                           value="@sport.SportID" />
+                                    @sport.SportName
+                                </label>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            Create Membership
+        </button>
+
+        @Html.ActionLink("Already a member? Sign in",
+            "Login", "Account", null,
+            new { @class = "btn btn-link" })
+    }
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
