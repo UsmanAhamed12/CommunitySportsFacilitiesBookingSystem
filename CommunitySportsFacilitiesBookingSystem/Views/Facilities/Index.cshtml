@@ -1,143 +1,36 @@
-﻿@model IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.Facility>
-
-@{
-    ViewBag.Title = "Search Facilities";
+@model IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.Facility>
+@{ ViewBag.Title = "Explore facilities"; bool isMember = Session["MemberID"] != null; }
+<div class="page-header"><div class="eyebrow">A space for every kind of player</div><h2>Find your next playground.</h2><p>@(isMember ? "Choose your sport, find a space and check a time that works for you." : "Explore local sports spaces. Join the community to see prices, check availability and book.")</p></div>
+@if (ViewBag.SearchError != null) { <div class="alert alert-danger" role="alert">@ViewBag.SearchError</div> }
+@using (Html.BeginForm("Index", "Facilities", FormMethod.Get, new { @class = "search-panel" })) {
+<div class="row">
+    <div class="col-sm-4"><label for="facilityTypeId">Space type</label>@Html.DropDownList("facilityTypeId", ViewBag.FacilityTypes as SelectList, "All space types", new { @class = "form-control" })</div>
+    <div class="col-sm-4"><label for="sportId">Your sport</label>@Html.DropDownList("sportId", ViewBag.Sports as SelectList, "All sports", new { @class = "form-control" })</div>
+    <div class="col-sm-4"><label for="city">Location</label><input id="city" name="city" value="@ViewBag.City" class="form-control" placeholder="Search a city" /></div>
+</div>
+if (isMember) {
+<div class="row">
+    <div class="col-sm-4"><label for="bookingDate">Date</label><input id="bookingDate" name="bookingDate" type="date" value="@ViewBag.BookingDate" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control" /></div>
+    <div class="col-sm-4"><label for="startTime">Start time</label><input id="startTime" name="startTime" type="time" value="@ViewBag.StartTime" class="form-control" /></div>
+    <div class="col-sm-4"><label for="endTime">End time</label><input id="endTime" name="endTime" type="time" value="@ViewBag.EndTime" class="form-control" /></div>
+</div>
 }
-
-<div class="container">
-    <h2>Find a Sports Facility</h2>
-    <p>Search by facility type, sport, location, date and time.</p>
-
-    @using (Html.BeginForm("Index", "Facilities", FormMethod.Get))
-    {
-        <div class="row">
-            <div class="col-md-2">
-                <label>Facility Type</label>
-                @Html.DropDownList(
-                    "facilityTypeId",
-                    ViewBag.FacilityTypes as SelectList,
-                    "All Types",
-                    new { @class = "form-control" })
-            </div>
-
-            <div class="col-md-2">
-                <label>Sport</label>
-                @Html.DropDownList(
-                    "sportId",
-                    ViewBag.Sports as SelectList,
-                    "All Sports",
-                    new { @class = "form-control" })
-            </div>
-
-            <div class="col-md-2">
-                <label>City</label>
-                <input name="city"
-                       value="@ViewBag.City"
-                       class="form-control"
-                       placeholder="Enter city" />
-            </div>
-
-            <div class="col-md-2">
-                <label>Date</label>
-                <input type="date"
-                       name="bookingDate"
-                       value="@ViewBag.BookingDate"
-                       class="form-control" />
-            </div>
-
-            <div class="col-md-2">
-                <label>Start Time</label>
-                <input type="time"
-                       name="startTime"
-                       value="@ViewBag.StartTime"
-                       class="form-control" />
-            </div>
-
-            <div class="col-md-2">
-                <label>End Time</label>
-                <input type="time"
-                       name="endTime"
-                       value="@ViewBag.EndTime"
-                       class="form-control" />
-            </div>
-        </div>
-
-        <br />
-
-        <button type="submit" class="btn btn-primary">
-            Search Facilities
-        </button>
-
-        @Html.ActionLink(
-            "Clear Search",
-            "Index",
-            null,
-            new { @class = "btn btn-default" })
-    }
-
-    <hr />
-
-    <div class="row">
-        @foreach (var facility in Model)
-        {
-            <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <strong>@facility.FacilityName</strong>
-                    </div>
-
-                    <div class="panel-body">
-                        <p>
-                            <strong>Type:</strong>
-                            @facility.FacilityType.TypeName
-                        </p>
-
-                        <p>
-                            <strong>Location:</strong>
-                            @facility.City
-                        </p>
-
-                        <p>
-                            <strong>Capacity:</strong>
-                            @facility.Capacity
-                        </p>
-
-                        @if (Session["MemberID"] != null)
-                        {
-                            <p>
-                                <strong>Hourly rate:</strong>
-                                @facility.HourlyRate.ToString("N2")
-                            </p>
-
-                            @Html.ActionLink(
-                                "Book Facility",
-                                "Create",
-                                "Bookings",
-                                new { facilityId = facility.FacilityID },
-                                new { @class = "btn btn-success" })
-                        }
-                        else
-                        {
-                            <p class="text-muted">
-                                Sign in to view booking details.
-                            </p>
-
-                            @Html.ActionLink(
-                                "Sign In to Book",
-                                "Login",
-                                "Account",
-                                null,
-                                new { @class = "btn btn-primary" })
-                        }
-
-                        @Html.ActionLink(
-                            "Details",
-                            "Details",
-                            new { id = facility.FacilityID },
-                            new { @class = "btn btn-default" })
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
+<button type="submit" class="btn btn-primary">Find facilities &rarr;</button> <a class="btn btn-default" href="@Url.Action("Index")">Reset filters</a>
+}
+<div class="section-heading" style="margin-top:25px"><p><strong>@Model.Count()</strong> @(Model.Count() == 1 ? "space" : "spaces") to explore</p>@if (Convert.ToString(Session["UserRole"]) == "Admin") { <a class="btn btn-default" href="@Url.Action("Create")">Add a facility</a> }</div>
+@if (!Model.Any()) { <section class="empty-state"><h3>No spaces match just yet.</h3><p>Try another city, sport or time to find your next game.</p><a class="btn btn-default" href="@Url.Action("Index")">Show all facilities</a></section> }
+<div class="facility-grid">
+@foreach (var facility in Model) {
+<article class="facility-card">
+    <div class="facility-cover" aria-hidden="true"><span>@facility.FacilityType.TypeName</span></div>
+    <div class="facility-content"><h3>@facility.FacilityName</h3>@if (!facility.IsActive) { <span class="label label-danger">Inactive</span> }<p>@facility.City</p><div class="facility-meta"><span>@facility.Capacity people</span><span>@facility.FacilityType.TypeName</span></div>
+    @if (isMember) { <div class="price">LKR @facility.HourlyRate.ToString("N0") <small>/ hour</small></div> }
+    else { <p>Sign in for prices and availability.</p> }
+    <div class="facility-actions">
+        <a class="btn btn-primary" href="@Url.Action("Create", "Bookings", new { facilityId = facility.FacilityID, bookingDate = ViewBag.BookingDate, startTime = ViewBag.StartTime, endTime = ViewBag.EndTime })">@(isMember ? "Book a session" : "Sign in to book")</a>
+        <a class="btn btn-default" href="@Url.Action("Details", new { id = facility.FacilityID })">View space</a>
+        @if (Convert.ToString(Session["UserRole"]) == "Admin") { <a class="btn btn-link" href="@Url.Action("Edit", new { id = facility.FacilityID })">Edit</a> }
+    </div></div>
+</article>
+}
 </div>

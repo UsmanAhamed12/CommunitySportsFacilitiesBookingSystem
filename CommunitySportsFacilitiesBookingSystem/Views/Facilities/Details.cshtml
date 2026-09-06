@@ -1,114 +1,82 @@
-﻿@model CommunitySportsFacilitiesBookingSystem.Models.Facility
+@model CommunitySportsFacilitiesBookingSystem.Models.Facility
 
 @{
-    ViewBag.Title = "Details";
+    ViewBag.Title = "Facility Details";
+    bool isMember = Session["MemberID"] != null;
 }
 
-<h2>Details</h2>
+<div class="container">
+    <div class="page-header">
+        <h2>@Model.FacilityName</h2>
+        <p>@Model.Description</p>
+    </div>
 
-<div>
-    <h4>Facility</h4>
-    <hr />
     <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.FacilityName)
-        </dt>
+        <dt>Facility type</dt>
+        <dd>@Model.FacilityType.TypeName</dd>
 
+        <dt>Location</dt>
+        <dd>@Model.City</dd>
+
+        <dt>Sports</dt>
         <dd>
-            @Html.DisplayFor(model => model.FacilityName)
+            @if (Model.FacilitySports.Any())
+            {
+                @String.Join(", ", Model.FacilitySports.Select(fs => fs.Sport.SportName))
+            }
+            else
+            {
+                <span>Not specified</span>
+            }
         </dd>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
+        @if (isMember)
+        {
+            <dt>Address</dt>
+            <dd>@Model.AddressLine, @Model.City @Model.PostalCode</dd>
 
-        <dd>
-            @Html.DisplayFor(model => model.Description)
-        </dd>
+            <dt>Capacity</dt>
+            <dd>@Model.Capacity participants</dd>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.AddressLine)
-        </dt>
+            <dt>Hourly rate</dt>
+            <dd>@Model.HourlyRate.ToString("N2")</dd>
 
-        <dd>
-            @Html.DisplayFor(model => model.AddressLine)
-        </dd>
+            <dt>Contact phone</dt>
+            <dd>@(String.IsNullOrWhiteSpace(Model.ContactPhone) ? "Not provided" : Model.ContactPhone)</dd>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.City)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.City)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.PostalCode)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.PostalCode)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Capacity)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Capacity)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.HourlyRate)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.HourlyRate)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.ContactPhone)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.ContactPhone)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.ImagePath)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.ImagePath)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.IsActive)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.IsActive)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.CreatedAt)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.FacilityType.TypeName)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.FacilityType.TypeName)
-        </dd>
-
+            <dt>Opening hours</dt>
+            <dd>
+                @if (Model.FacilitySchedules.Any(s => s.IsAvailable))
+                {
+                    foreach (var schedule in Model.FacilitySchedules.Where(s => s.IsAvailable).OrderBy(s => s.DayOfWeek))
+                    {
+                        string dayName = schedule.DayOfWeek == 7
+                            ? "Sunday"
+                            : ((DayOfWeek)schedule.DayOfWeek).ToString();
+                        <div>@dayName: @schedule.OpeningTime.ToString(@"hh\:mm") - @schedule.ClosingTime.ToString(@"hh\:mm")</div>
+                    }
+                }
+                else
+                {
+                    <span>No available schedule has been published.</span>
+                }
+            </dd>
+        }
     </dl>
+
+    @if (isMember)
+    {
+        @Html.ActionLink("Book This Facility", "Create", "Bookings",
+            new { facilityId = Model.FacilityID }, new { @class = "btn btn-success" })
+    }
+    else
+    {
+        <div class="alert alert-info">
+            Sign in to view booking details, exact availability and pricing.
+        </div>
+        @Html.ActionLink("Sign In to Book", "Login", "Account", null,
+            new { @class = "btn btn-primary" })
+    }
+
+    @Html.ActionLink("Back to Facilities", "Index", null, new { @class = "btn btn-default" })
 </div>
-<p>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.FacilityID }) |
-    @Html.ActionLink("Back to List", "Index")
-</p>

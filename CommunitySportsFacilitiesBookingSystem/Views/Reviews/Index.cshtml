@@ -1,4 +1,4 @@
-﻿@model IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.Review>
+@model IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.Review>
 
 @{
     ViewBag.Title = "Facility Reviews";
@@ -74,6 +74,7 @@
                     }
 
                     <p>@item.ReviewComment</p>
+                    @if (Convert.ToString(Session["UserRole"]) == "Admin") { <p><a class="btn btn-default btn-xs" href="@Url.Action("Edit", new { id = item.ReviewID })">Moderate review</a> @(item.IsApproved ? "Published" : "Hidden")</p> }
 
                     <p>
                         <strong>Condition:</strong>

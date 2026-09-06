@@ -1,30 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
-
+using CommunitySportsFacilitiesBookingSystem.Models;
+using CommunitySportsFacilitiesBookingSystem.Filters;
 namespace CommunitySportsFacilitiesBookingSystem.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public ActionResult Index() { return View(); }
+        public ActionResult About() { return View(); }
+        public ActionResult Contact() { return RedirectToAction("Create", "Inquiries"); }
+        [AdminAuthorize]
+        public ActionResult Dashboard()
         {
-            return View();
-        }
-
-        public ActionResult About()
-        {
-            ViewBag.Message = "Your application description page.";
-
-            return View();
-        }
-
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
-
-            return View();
+            using (var db = new CommunitySportsFacilitiesBookingDBEntities())
+            {
+                ViewBag.PendingBookings = db.Bookings.Count(b => b.BookingStatus == "Pending");
+                ViewBag.ActiveMembers = db.Members.Count(m => m.IsActive);
+                ViewBag.NewInquiries = db.Inquiries.Count(i => i.InquiryStatus == "New");
+                return View();
+            }
         }
     }
 }

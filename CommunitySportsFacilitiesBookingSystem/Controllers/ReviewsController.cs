@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -21,7 +21,8 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
             var reviews = db.Reviews
                 .Include(r => r.Booking.Facility)
                 .Include(r => r.Booking.Member)
-                .Where(r => r.IsApproved);
+                 .AsQueryable();
+            if (Convert.ToString(Session["UserRole"]) != "Admin") reviews = reviews.Where(r => r.IsApproved);
 
             if (facilityId.HasValue)
             {
@@ -199,18 +200,14 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [CommunitySportsFacilitiesBookingSystem.Filters.AdminAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ReviewID,BookingID,OverallRating,ConditionRating,AmenitiesRating,ReviewTitle,ReviewComment,SubmittedAt,IsApproved")] Review review)
+        public ActionResult Edit(int reviewID, bool isApproved)
         {
-            if (ModelState.IsValid)
-            {
-                db.Entry(review).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            ViewBag.BookingID = new SelectList(db.Bookings, "BookingID", "Purpose", review.BookingID);
-            return View(review);
+            var review = db.Reviews.Find(reviewID);
+            if (review == null) return HttpNotFound();
+            review.IsApproved = isApproved;
+            db.SaveChanges(); TempData["SuccessMessage"] = "Review visibility updated.";
+            return RedirectToAction("Index");
         }
-
         // GET: Reviews/Delete/5
         [CommunitySportsFacilitiesBookingSystem.Filters.AdminAuthorize]
         public ActionResult Delete(int? id)
@@ -234,6 +231,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             Review review = db.Reviews.Find(id);
+            if (review == null) return HttpNotFound();
             db.Reviews.Remove(review);
             db.SaveChanges();
             return RedirectToAction("Index");

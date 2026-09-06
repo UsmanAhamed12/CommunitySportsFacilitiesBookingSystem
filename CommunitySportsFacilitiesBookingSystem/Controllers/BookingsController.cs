@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+using System;
 using System.Data.Entity;
 using System.Linq;
-using System.Net;
-using System.Web;
 using System.Web.Mvc;
 using CommunitySportsFacilitiesBookingSystem.Models;
 using CommunitySportsFacilitiesBookingSystem.ViewModels;
@@ -14,295 +10,123 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
 {
     public class BookingsController : Controller
     {
-        private CommunitySportsFacilitiesBookingDBEntities db = new CommunitySportsFacilitiesBookingDBEntities();
-        // GET: Bookings
+        private readonly CommunitySportsFacilitiesBookingDBEntities db = new CommunitySportsFacilitiesBookingDBEntities();
+        private bool IsAdmin { get { return Convert.ToString(Session["UserRole"]) == "Admin"; } }
+        private ActionResult SignIn() { return RedirectToAction("Login", "Account", new { returnUrl = Request.RawUrl }); }
         [AdminAuthorize]
-        public ActionResult Index()
-        {
-            var bookings = db.Bookings.Include(b => b.Facility).Include(b => b.Member);
-            return View(bookings.ToList());
-        }
-
-        // GET: Bookings/Details/5
+        public ActionResult Index() { return View(db.Bookings.Include(b => b.Facility).Include(b => b.Member).OrderByDescending(b => b.CreatedAt).ToList()); }
         public ActionResult Details(int? id)
         {
-            if (Session["MemberID"] == null)
-                return RedirectToAction("Login", "Account");
-
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
+            if (Session["MemberID"] == null) return SignIn();
             int memberId = Convert.ToInt32(Session["MemberID"]);
-            Booking booking = db.Bookings
-                .Include(b => b.Facility)
-                .SingleOrDefault(b => b.BookingID == id.Value &&
-                                      b.MemberID == memberId);
-            if (booking == null)
-            {
-                return HttpNotFound();
-            }
+            var booking = db.Bookings.Include(b => b.Facility).Include(b => b.Member).SingleOrDefault(b => b.BookingID == id);
+            if (booking == null || (!IsAdmin && booking.MemberID != memberId)) return HttpNotFound();
             return View(booking);
         }
-
-        // GET: Bookings/Create
-        public ActionResult Create(int? facilityId)
+        private void SetSummary(Facility facility, BookingCreateViewModel model)
         {
-            if (Session["MemberID"] == null)
-                return RedirectToAction("Login", "Account");
-
-            if (!facilityId.HasValue)
-                return RedirectToAction("Index", "Facilities");
-
+            model.FacilityName = facility.FacilityName;
+            model.HourlyRate = facility.HourlyRate;
+            model.Capacity = facility.Capacity;
+            ViewBag.Schedules = db.FacilitySchedules.Where(s => s.FacilityID == facility.FacilityID).OrderBy(s => s.DayOfWeek).ToList();
+        }
+        public ActionResult Create(int? facilityId, DateTime? bookingDate, TimeSpan? startTime, TimeSpan? endTime)
+        {
+            if (Session["MemberID"] == null) return SignIn();
+            if (!facilityId.HasValue) return RedirectToAction("Index", "Facilities");
             var facility = db.Facilities.Find(facilityId.Value);
-
-            if (facility == null || !facility.IsActive)
-                return HttpNotFound();
-
-            var model = new BookingCreateViewModel
-            {
-                FacilityID = facility.FacilityID,
-                FacilityName = facility.FacilityName,
-                BookingDate = DateTime.Today.AddDays(1),
-                StartTime = new TimeSpan(9, 0, 0),
-                EndTime = new TimeSpan(10, 0, 0),
-                NumberOfParticipants = 1
-            };
-
+            if (facility == null || !facility.IsActive) return HttpNotFound();
+            var model = new BookingCreateViewModel { FacilityID = facility.FacilityID,
+                BookingDate = bookingDate.HasValue && bookingDate.Value.Date >= DateTime.Today ? bookingDate.Value.Date : DateTime.Today.AddDays(1),
+                StartTime = startTime ?? TimeSpan.FromHours(9), EndTime = endTime ?? TimeSpan.FromHours(10), NumberOfParticipants = 1 };
+            SetSummary(facility, model);
             return View(model);
         }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public ActionResult Create(BookingCreateViewModel model)
         {
-            if (Session["MemberID"] == null)
-                return RedirectToAction("Login", "Account");
-
-            var facility = db.Facilities.Find(model.FacilityID);
-
-            if (facility == null || !facility.IsActive)
-                return HttpNotFound();
-
-            model.FacilityName = facility.FacilityName;
-
-            if (model.BookingDate.Date < DateTime.Today)
+            if (Session["MemberID"] == null) return SignIn();
+            // Lock the facility until commit so competing requests cannot both reserve the same slot.
+            using (var transaction = db.Database.BeginTransaction())
             {
-                ModelState.AddModelError(
-                    "BookingDate",
-                    "The booking date cannot be in the past.");
+                db.Database.SqlQuery<int>("SELECT FacilityID FROM dbo.Facility WITH (UPDLOCK, HOLDLOCK) WHERE FacilityID = @p0", model.FacilityID).ToList();
+                var facility = db.Facilities.Find(model.FacilityID);
+                if (facility == null || !facility.IsActive) return HttpNotFound();
+                SetSummary(facility, model);
+                model.BookingDate = model.BookingDate.Date;
+                if (model.StartTime < TimeSpan.Zero || model.EndTime >= TimeSpan.FromDays(1) || model.EndTime <= model.StartTime)
+                    ModelState.AddModelError("EndTime", "Choose a valid end time after the start time on the same day.");
+                if (model.StartTime >= TimeSpan.Zero && model.StartTime < TimeSpan.FromDays(1) && model.BookingDate.Add(model.StartTime) <= DateTime.Now)
+                    ModelState.AddModelError("BookingDate", "Choose a date and start time in the future.");
+                if (model.NumberOfParticipants > facility.Capacity)
+                    ModelState.AddModelError("NumberOfParticipants", "This space accommodates up to " + facility.Capacity + " participants.");
+                if (!ModelState.IsValid) return View(model);
+                int day = model.BookingDate.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)model.BookingDate.DayOfWeek;
+                if (!db.FacilitySchedules.Any(s => s.FacilityID == model.FacilityID && s.DayOfWeek == day && s.IsAvailable && s.OpeningTime <= model.StartTime && s.ClosingTime >= model.EndTime))
+                    ModelState.AddModelError("", "Your selected time is outside this facility's opening hours.");
+                if (db.Bookings.Any(b => b.FacilityID == model.FacilityID && b.BookingDate == model.BookingDate && (b.BookingStatus == "Pending" || b.BookingStatus == "Confirmed") && model.StartTime < b.EndTime && model.EndTime > b.StartTime))
+                    ModelState.AddModelError("", "That time has already been reserved. Please choose another slot.");
+                if (!ModelState.IsValid) return View(model);
+                db.Bookings.Add(new Booking { MemberID = Convert.ToInt32(Session["MemberID"]), FacilityID = model.FacilityID,
+                    BookingDate = model.BookingDate, StartTime = model.StartTime, EndTime = model.EndTime,
+                    NumberOfParticipants = model.NumberOfParticipants, Purpose = model.Purpose,
+                    BookingStatus = "Pending", TotalAmount = Math.Round((decimal)(model.EndTime - model.StartTime).TotalHours * facility.HourlyRate, 2, MidpointRounding.AwayFromZero), CreatedAt = DateTime.Now });
+                db.SaveChanges(); transaction.Commit();
             }
-
-            if (model.EndTime <= model.StartTime)
-            {
-                ModelState.AddModelError(
-                    "EndTime",
-                    "End time must be later than start time.");
-            }
-
-            if (model.NumberOfParticipants > facility.Capacity)
-            {
-                ModelState.AddModelError(
-                    "NumberOfParticipants",
-                    "The number of participants exceeds facility capacity.");
-            }
-
-            int dayNumber = model.BookingDate.DayOfWeek ==
-                            DayOfWeek.Sunday
-                ? 7
-                : (int)model.BookingDate.DayOfWeek;
-
-            bool withinOpeningHours =
-                db.FacilitySchedules.Any(s =>
-                    s.FacilityID == model.FacilityID &&
-                    s.DayOfWeek == dayNumber &&
-                    s.IsAvailable &&
-                    s.OpeningTime <= model.StartTime &&
-                    s.ClosingTime >= model.EndTime);
-
-            if (!withinOpeningHours)
-            {
-                ModelState.AddModelError(
-                    "",
-                    "The facility is unavailable during the selected time.");
-            }
-
-            bool hasConflict = db.Bookings.Any(b =>
-                b.FacilityID == model.FacilityID &&
-                b.BookingDate == model.BookingDate &&
-                (b.BookingStatus == "Pending" ||
-                 b.BookingStatus == "Confirmed") &&
-                model.StartTime < b.EndTime &&
-                model.EndTime > b.StartTime);
-
-            if (hasConflict)
-            {
-                ModelState.AddModelError(
-                "",
-                "This facility is already booked during the selected time.");
-            }
-
-            if (!ModelState.IsValid)
-                return View(model);
-
-            decimal durationHours =
-                (decimal)(model.EndTime - model.StartTime).TotalHours;
-
-            var booking = new Booking
-            {
-                MemberID = Convert.ToInt32(Session["MemberID"]),
-                FacilityID = model.FacilityID,
-                BookingDate = model.BookingDate.Date,
-                StartTime = model.StartTime,
-                EndTime = model.EndTime,
-                NumberOfParticipants = model.NumberOfParticipants,
-                Purpose = model.Purpose,
-                BookingStatus = "Pending",
-                TotalAmount = durationHours * facility.HourlyRate,
-                CreatedAt = DateTime.Now
-            };
-
-            db.Bookings.Add(booking);
-            db.SaveChanges();
-
-            TempData["SuccessMessage"] =
-                "Your facility booking was submitted successfully.";
-
+            TempData["SuccessMessage"] = "Booking requested. You can track its confirmation below.";
             return RedirectToAction("MyBookings");
         }
-
-        // GET: Bookings/Edit/5
         [AdminAuthorize]
         public ActionResult Edit(int? id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Booking booking = db.Bookings.Find(id);
-            if (booking == null)
-            {
-                return HttpNotFound();
-            }
-            ViewBag.FacilityID = new SelectList(db.Facilities, "FacilityID", "FacilityName", booking.FacilityID);
-            ViewBag.MemberID = new SelectList(db.Members, "MemberID", "FirstName", booking.MemberID);
+            var booking = db.Bookings.Include(b => b.Facility).Include(b => b.Member).SingleOrDefault(b => b.BookingID == id);
+            if (booking == null) return HttpNotFound();
             return View(booking);
         }
-
-        // POST: Bookings/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
-        [AdminAuthorize]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(Booking booking)
+        [AdminAuthorize, HttpPost, ValidateAntiForgeryToken]
+        public ActionResult Edit(int bookingID, string bookingStatus)
         {
-            if (ModelState.IsValid)
-            {
-                db.Entry(booking).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            ViewBag.FacilityID = new SelectList(db.Facilities, "FacilityID", "FacilityName", booking.FacilityID);
-            ViewBag.MemberID = new SelectList(db.Members, "MemberID", "FirstName", booking.MemberID);
-            return View(booking);
-        }
-
-        // GET: Bookings/Delete/5
-        [AdminAuthorize]
-        public ActionResult Delete(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Booking booking = db.Bookings.Find(id);
-            if (booking == null)
-            {
-                return HttpNotFound();
-            }
-            return View(booking);
-        }
-
-        // POST: Bookings/Delete/5
-        [AdminAuthorize]
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
-        {
-            Booking booking = db.Bookings.Find(id);
-            db.Bookings.Remove(booking);
-            db.SaveChanges();
+            var booking = db.Bookings.Include(b => b.Facility).Include(b => b.Member).SingleOrDefault(b => b.BookingID == bookingID);
+            if (booking == null) return HttpNotFound();
+            bool allowed = bookingStatus == booking.BookingStatus ||
+                (booking.BookingStatus == "Pending" && new[] { "Confirmed", "Rejected", "Cancelled" }.Contains(bookingStatus)) ||
+                (booking.BookingStatus == "Confirmed" && new[] { "Completed", "Cancelled" }.Contains(bookingStatus));
+            if (!allowed) ModelState.AddModelError("", "This status change is not allowed. Finalised bookings cannot be reopened.");
+            if (bookingStatus == "Completed" && booking.BookingDate.Add(booking.EndTime) > DateTime.Now)
+                ModelState.AddModelError("", "A booking can only be completed after its session ends.");
+            if (!ModelState.IsValid) return View(booking);
+            int changed = db.Database.ExecuteSqlCommand("UPDATE dbo.Booking SET BookingStatus=@p0, CancelledAt=CASE WHEN @p0='Cancelled' THEN @p1 ELSE CancelledAt END WHERE BookingID=@p2 AND BookingStatus=@p3", bookingStatus, DateTime.Now, bookingID, booking.BookingStatus);
+            if (changed == 0) { ModelState.AddModelError("", "This booking changed while you were editing it. Reload the page and try again."); return View(booking); }
+            TempData["SuccessMessage"] = "Booking status updated.";
             return RedirectToAction("Index");
         }
-
+        [AdminAuthorize]
+        public ActionResult Delete(int? id) { return RedirectToAction("Edit", new { id }); }
+        [AdminAuthorize, HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
+        public ActionResult DeleteConfirmed(int id)
+        {
+            TempData["ErrorMessage"] = "Booking history is retained. Use the booking status to cancel or reject a reservation.";
+            return RedirectToAction("Edit", new { id });
+        }
         public ActionResult MyBookings()
         {
-            if (Session["MemberID"] == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
+            if (Session["MemberID"] == null) return SignIn();
             int memberId = Convert.ToInt32(Session["MemberID"]);
-
-            var bookings = db.Bookings
-                .Include(b => b.Facility)
-                .Where(b => b.MemberID == memberId)
-                .OrderByDescending(b => b.BookingDate)
-                .ThenByDescending(b => b.StartTime)
-                .ToList();
-
-            ViewBag.ReviewedBookingIDs = db.Reviews
-                .Where(r => r.Booking.MemberID == memberId)
-                .Select(r => r.BookingID)
-                .ToList();
-
-            return View(bookings);
+            ViewBag.ReviewedBookingIDs = db.Reviews.Where(r => r.Booking.MemberID == memberId).Select(r => r.BookingID).ToList();
+            return View(db.Bookings.Include(b => b.Facility).Where(b => b.MemberID == memberId).OrderByDescending(b => b.BookingDate).ThenByDescending(b => b.StartTime).ToList());
         }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public ActionResult Cancel(int id)
         {
-            if (Session["MemberID"] == null)
-                return RedirectToAction("Login", "Account");
-
+            if (Session["MemberID"] == null) return SignIn();
             int memberId = Convert.ToInt32(Session["MemberID"]);
-
-            var booking = db.Bookings.SingleOrDefault(b =>
-                b.BookingID == id &&
-                b.MemberID == memberId);
-
-            if (booking == null)
-                return HttpNotFound();
-
-            if (booking.BookingStatus != "Pending" &&
-                booking.BookingStatus != "Confirmed")
-            {
-                TempData["ErrorMessage"] =
-                    "Only pending or confirmed bookings can be cancelled.";
-
-                return RedirectToAction("MyBookings");
-            }
-
-            booking.BookingStatus = "Cancelled";
-            booking.CancelledAt = DateTime.Now;
-
-            db.SaveChanges();
-
-            TempData["SuccessMessage"] =
-                "Your booking was cancelled successfully.";
-
+            var booking = db.Bookings.SingleOrDefault(b => b.BookingID == id && b.MemberID == memberId);
+            if (booking == null) return HttpNotFound();
+            // Conditional update also prevents a concurrent admin transition being overwritten.
+            int updated = db.Database.ExecuteSqlCommand("UPDATE dbo.Booking SET BookingStatus = 'Cancelled', CancelledAt = @p0 WHERE BookingID = @p1 AND MemberID = @p2 AND BookingStatus IN ('Pending','Confirmed') AND (BookingDate > @p3 OR (BookingDate = @p3 AND StartTime > @p4))", DateTime.Now, id, memberId, DateTime.Today, DateTime.Now.TimeOfDay);
+            TempData[updated == 1 ? "SuccessMessage" : "ErrorMessage"] = updated == 1 ? "Your booking has been cancelled." : "Only upcoming pending or confirmed bookings can be cancelled.";
             return RedirectToAction("MyBookings");
         }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+        protected override void Dispose(bool disposing) { if (disposing) db.Dispose(); base.Dispose(disposing); }
     }
 }

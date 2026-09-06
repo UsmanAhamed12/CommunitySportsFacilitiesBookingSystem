@@ -1,13 +1,2 @@
-﻿<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Error</title>
-</head>
-<body>
-    <hgroup>
-        <h1>Error.</h1>
-        <h2>An error occurred while processing your request.</h2>
-    </hgroup>
-</body>
-</html>
+@{ ViewBag.Title = ViewBag.Title ?? "We couldn't complete that request"; }
+<section class="empty-state"><div class="eyebrow">Let's get you back on track</div><h1>@ViewBag.Title</h1><p>@(ViewBag.ErrorMessage ?? "Please try again. If the problem continues, contact the council.")</p><a class="btn btn-primary" href="@Url.Action("Index", "Home")">Back to home</a> <a class="btn btn-default" href="@Url.Action("Create", "Inquiries")">Contact the council</a></section>

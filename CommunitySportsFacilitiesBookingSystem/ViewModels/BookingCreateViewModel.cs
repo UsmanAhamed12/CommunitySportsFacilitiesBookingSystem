@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace CommunitySportsFacilitiesBookingSystem.ViewModels
@@ -10,6 +10,8 @@ namespace CommunitySportsFacilitiesBookingSystem.ViewModels
 
         [Display(Name = "Facility")]
         public string FacilityName { get; set; }
+        public decimal HourlyRate { get; set; }
+        public int Capacity { get; set; }
 
         [Required]
         [DataType(DataType.Date)]
@@ -27,7 +29,7 @@ namespace CommunitySportsFacilitiesBookingSystem.ViewModels
         public TimeSpan EndTime { get; set; }
 
         [Required]
-        [Range(1, 100)]
+        [Range(1, int.MaxValue)]
         [Display(Name = "Number of Participants")]
         public int NumberOfParticipants { get; set; }
 

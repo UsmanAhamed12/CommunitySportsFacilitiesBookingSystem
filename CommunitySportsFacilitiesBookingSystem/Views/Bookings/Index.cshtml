@@ -1,93 +1,10 @@
-﻿@model IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.Booking>
-
-@{
-    ViewBag.Title = "Index";
+@model IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.Booking>
+@{ ViewBag.Title = "Manage bookings"; }
+<div class="page-header"><div class="eyebrow">Council administration</div><h2>Booking requests</h2><p>Confirm upcoming games and keep members informed.</p></div>
+<p><a href="@Url.Action("Dashboard", "Home")">&larr; Dashboard</a></p>
+@if (!Model.Any()) { <div class="empty-state"><h3>No bookings yet.</h3><p>Member requests will appear here.</p></div> }
+else {
+<div class="table-responsive"><table class="table"><thead><tr><th>Booking</th><th>Member</th><th>Session</th><th>Status</th><th>Total</th><th>Action</th></tr></thead><tbody>
+@foreach (var item in Model) { <tr><td><strong>@item.Facility.FacilityName</strong><br /><small>#@item.BookingID &middot; @item.NumberOfParticipants people</small></td><td>@item.Member.FirstName @item.Member.LastName</td><td>@item.BookingDate.ToString("dd MMM yyyy")<br />@item.StartTime.ToString(@"hh\:mm") &ndash; @item.EndTime.ToString(@"hh\:mm")</td><td><span class="label @(item.BookingStatus == "Pending" ? "label-warning" : "label-info")">@item.BookingStatus</span></td><td>LKR @item.TotalAmount.ToString("N2")</td><td><a class="btn btn-default btn-xs" href="@Url.Action("Edit", new { id = item.BookingID })">Manage</a></td></tr> }
+</tbody></table></div>
 }
-
-<h2>Index</h2>
-
-<p>
-    @Html.ActionLink("Create New", "Create")
-</p>
-<table class="table">
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.BookingDate)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.StartTime)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.EndTime)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.NumberOfParticipants)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Purpose)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.BookingStatus)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.TotalAmount)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CancelledAt)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Facility.FacilityName)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Member.FirstName)
-        </th>
-        <th></th>
-    </tr>
-
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.BookingDate)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.StartTime)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.EndTime)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.NumberOfParticipants)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Purpose)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.BookingStatus)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.TotalAmount)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CreatedAt)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CancelledAt)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Facility.FacilityName)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Member.FirstName)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { id=item.BookingID }) |
-            @Html.ActionLink("Details", "Details", new { id=item.BookingID }) |
-            @Html.ActionLink("Delete", "Delete", new { id=item.BookingID })
-        </td>
-    </tr>
-}
-
-</table>

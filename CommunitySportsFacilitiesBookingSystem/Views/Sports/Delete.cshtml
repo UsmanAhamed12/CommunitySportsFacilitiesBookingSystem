@@ -1,12 +1,12 @@
-﻿@model CommunitySportsFacilitiesBookingSystem.Models.Sport
+@model CommunitySportsFacilitiesBookingSystem.Models.Sport
 
 @{
     ViewBag.Title = "Delete";
 }
 
-<h2>Delete</h2>
+<h2>Deactivate</h2>
 
-<h3>Are you sure you want to delete this?</h3>
+<h3>Deactivate this record? Existing history will be retained.</h3>
 <div>
     <h4>Sport</h4>
     <hr />
@@ -41,7 +41,7 @@
         @Html.AntiForgeryToken()
 
         <div class="form-actions no-color">
-            <input type="submit" value="Delete" class="btn btn-default" /> |
+            <input type="submit" value="Deactivate" class="btn btn-default" /> |
             @Html.ActionLink("Back to List", "Index")
         </div>
     }

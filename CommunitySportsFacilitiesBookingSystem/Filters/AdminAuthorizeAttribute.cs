@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
@@ -13,10 +13,11 @@ namespace CommunitySportsFacilitiesBookingSystem.Filters
             if (httpContext.Session["MemberID"] == null)
                 return false;
 
-            string role = Convert.ToString(
-                httpContext.Session["UserRole"]);
-
-            return role == "Admin";
+            using (var db = new CommunitySportsFacilitiesBookingSystem.Models.CommunitySportsFacilitiesBookingDBEntities())
+            {
+                var member = db.Members.Find(Convert.ToInt32(httpContext.Session["MemberID"]));
+                return member != null && member.IsActive && member.UserRole == "Admin";
+            }
         }
 
         protected override void HandleUnauthorizedRequest(

@@ -1,0 +1,7 @@
+@{ ViewBag.Title = "Council dashboard"; }
+<div class="page-header"><div class="eyebrow">Council administration</div><h2>Your community at a glance.</h2><p>Welcome, @Session["MemberName"]. Keep spaces ready and help members get playing.</p></div>
+<section class="stats-grid"><a class="stat-card" href="@Url.Action("Index", "Bookings")"><strong>@ViewBag.PendingBookings</strong>Pending booking requests &rarr;</a><a class="stat-card" href="@Url.Action("Index", "Members")"><strong>@ViewBag.ActiveMembers</strong>Active members &rarr;</a><a class="stat-card" href="@Url.Action("Index", "Inquiries")"><strong>@ViewBag.NewInquiries</strong>New inquiries &rarr;</a></section>
+<div class="section-heading"><h3>Manage your spaces</h3></div>
+<div class="admin-links">
+@foreach (var entry in new[] { new[] { "Facilities", "Facilities" }, new[] { "Opening hours", "FacilitySchedules" }, new[] { "Sports", "Sports" }, new[] { "Facility types", "FacilityTypes" }, new[] { "Facility sports", "FacilitySports" }, new[] { "Member preferences", "MemberSports" }, new[] { "Reviews", "Reviews" } }) { <a class="btn btn-default" href="@Url.Action("Index", entry[1])">@entry[0]</a> }
+</div>

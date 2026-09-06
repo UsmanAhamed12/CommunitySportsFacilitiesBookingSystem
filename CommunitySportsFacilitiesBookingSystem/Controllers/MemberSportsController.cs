@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -53,8 +53,11 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "MemberSportID,MemberID,SportID,IsPrimaryPreference,SelectedAt")] MemberSport memberSport)
         {
+            if (db.MemberSports.Any(s => s.MemberID == memberSport.MemberID && s.SportID == memberSport.SportID && s.MemberSportID != memberSport.MemberSportID)) ModelState.AddModelError("", "This sport is already in the member's preferences.");
+            if (!db.Members.Any(m => m.MemberID == memberSport.MemberID) || !db.Sports.Any(s => s.SportID == memberSport.SportID)) ModelState.AddModelError("", "Choose an existing member and sport.");
             if (ModelState.IsValid)
             {
+                memberSport.SelectedAt = DateTime.Now;
                 db.MemberSports.Add(memberSport);
                 db.SaveChanges();
                 return RedirectToAction("Index");
@@ -89,6 +92,8 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "MemberSportID,MemberID,SportID,IsPrimaryPreference,SelectedAt")] MemberSport memberSport)
         {
+            if (db.MemberSports.Any(s => s.MemberID == memberSport.MemberID && s.SportID == memberSport.SportID && s.MemberSportID != memberSport.MemberSportID)) ModelState.AddModelError("", "This sport is already in the member's preferences.");
+            if (!db.Members.Any(m => m.MemberID == memberSport.MemberID) || !db.Sports.Any(s => s.SportID == memberSport.SportID)) ModelState.AddModelError("", "Choose an existing member and sport.");
             if (ModelState.IsValid)
             {
                 db.Entry(memberSport).State = EntityState.Modified;
@@ -121,6 +126,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             MemberSport memberSport = db.MemberSports.Find(id);
+            if (memberSport == null) return HttpNotFound();
             db.MemberSports.Remove(memberSport);
             db.SaveChanges();
             return RedirectToAction("Index");

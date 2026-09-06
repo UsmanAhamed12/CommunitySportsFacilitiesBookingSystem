@@ -1,4 +1,4 @@
-﻿@using System.Collections.Generic
+@using System.Collections.Generic
 @model IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.Booking>
 
 @{
@@ -15,19 +15,9 @@
         <p>View and manage your upcoming and previous reservations.</p>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">
-            @TempData["SuccessMessage"]
-        </div>
-    }
 
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger">
-            @TempData["ErrorMessage"]
-        </div>
-    }
+
+
 
     <p>
         @Html.ActionLink(
@@ -116,7 +106,7 @@
                             </td>
 
                             <td>
-                                @item.TotalAmount.ToString("N2")
+                                LKR @item.TotalAmount.ToString("N2")
                             </td>
 
                             <td>
@@ -140,8 +130,7 @@
                                         new { @class = "btn btn-success btn-xs" })
                                 }
 
-                                @if (item.BookingStatus == "Pending" ||
-                                     item.BookingStatus == "Confirmed")
+                                @if ((item.BookingStatus == "Pending" || item.BookingStatus == "Confirmed") && item.BookingDate.Add(item.StartTime) > DateTime.Now)
                                 {
                                     using (Html.BeginForm(
                                         "Cancel",

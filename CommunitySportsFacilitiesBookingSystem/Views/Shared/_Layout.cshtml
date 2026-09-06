@@ -1,105 +1,60 @@
-﻿<!DOCTYPE html>
-<html>
+@{
+    var currentController = Convert.ToString(ViewContext.RouteData.Values["controller"]);
+    // Debug bundles use unversioned URLs. Version application assets on every edit
+    // so Visual Studio and the local launcher cannot reuse an older design.
+    var styleVersion = System.IO.File.GetLastWriteTimeUtc(Server.MapPath("~/Content/Site.css")).Ticks;
+    var scriptVersion = System.IO.File.GetLastWriteTimeUtc(Server.MapPath("~/Scripts/site.js")).Ticks;
+}
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - My ASP.NET Application</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Discover community sports facilities, find an available time and manage your bookings with ActiveCommunity." />
+    <title>@ViewBag.Title - ActiveCommunity</title>
     @Styles.Render("~/Content/css")
+    <link rel="stylesheet" href="@Url.Content("~/Content/Site.css")?v=@styleVersion" />
     @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                @Html.ActionLink(
-                    "ActiveCommunity",
-                    "Index",
-                    "Home",
-                    null,
-                    new { @class = "navbar-brand" })
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                    <li>@Html.ActionLink("Facilities", "Index", "Facilities")</li>
-                    <li>@Html.ActionLink("Reviews", "Index", "Reviews")</li>
-                    <li>@Html.ActionLink("Contact", "Create", "Inquiries")</li>
-                </ul>
-
-                <ul class="nav navbar-nav navbar-right">
-                    @if (Session["MemberID"] != null)
-                    {
-                        <li>
-                            <a href="#">
-                                Welcome, @Session["MemberName"]
-                            </a>
-                        </li>
-
-                        <li>
-                            @Html.ActionLink(
-                                "My Bookings",
-                                "MyBookings",
-                                "Bookings")
-                        </li>
-
-                        <li>
-                            @using (Html.BeginForm(
-                                "Logout",
-                                "Account",
-                                FormMethod.Post,
-                                new { id = "logoutForm", style = "display:inline;" }))
-                            {
-                                @Html.AntiForgeryToken()
-
-                                <button type="submit"
-                                        class="btn btn-link navbar-btn"
-                                        style="color:#9d9d9d; text-decoration:none;">
-                                    Logout
-                                </button>
-                            }
-                        </li>
-                    }
-                    else
-                    {
-                        <li>
-                            @Html.ActionLink(
-                                "Register",
-                                "Register",
-                                "Account")
-                        </li>
-
-                        <li>
-                            @Html.ActionLink(
-                                "Sign In",
-                                "Login",
-                                "Account")
-                        </li>
-                    }
-                </ul>
-            </div>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<nav class="navbar navbar-inverse navbar-fixed-top" aria-label="Main navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-nav" aria-controls="main-nav" aria-expanded="false" aria-label="Toggle navigation"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+            <a class="navbar-brand" href="@Url.Action("Index", "Home")"><span class="brand-mark" aria-hidden="true">a</span>ActiveCommunity</a>
+        </div>
+        <div id="main-nav" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="@(currentController == "Facilities" ? "active" : "")"><a href="@Url.Action("Index", "Facilities")">Explore facilities</a></li>
+                <li class="@(currentController == "Reviews" ? "active" : "")"><a href="@Url.Action("Index", "Reviews")">Reviews</a></li>
+                <li class="@(currentController == "Inquiries" ? "active" : "")"><a href="@Url.Action("Create", "Inquiries")">Contact</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            @if (Session["MemberID"] != null)
+            {
+                if (Convert.ToString(Session["UserRole"]) == "Admin") { <li><a href="@Url.Action("Dashboard", "Home")">Admin</a></li> }
+                <li><a href="@Url.Action("MyBookings", "Bookings")">My bookings</a></li>
+                <li>@using (Html.BeginForm("Logout", "Account", FormMethod.Post, new { id = "logoutForm" })) { @Html.AntiForgeryToken()<button type="submit" class="btn btn-link navbar-btn">Sign out</button> }</li>
+            }
+            else
+            {
+                <li><a href="@Url.Action("Login", "Account")">Sign in</a></li>
+                <li><a class="nav-cta" href="@Url.Action("Register", "Account")">Join the community</a></li>
+            }
+            </ul>
         </div>
     </div>
-    <div class="container body-content">
-        @RenderBody()
-        <hr />
-        <footer>
-            <p>
-                &copy; @DateTime.Now.Year ActiveCommunity Sports Council
-            </p>
-
-            <p>
-                Making local sports facilities easier to discover and book.
-            </p>
-        </footer>
-    </div>
-
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
-    @RenderSection("scripts", required: false)
+</nav>
+<main id="main-content" class="container body-content" tabindex="-1">
+    @if (TempData["SuccessMessage"] != null) { <div class="alert alert-success" role="status">@TempData["SuccessMessage"]</div> }
+    @if (TempData["ErrorMessage"] != null) { <div class="alert alert-danger" role="alert">@TempData["ErrorMessage"]</div> }
+    @RenderBody()
+</main>
+<footer class="site-footer"><div class="container footer-inner"><div><strong>ActiveCommunity</strong><p>More spaces to play. More reasons to get together.</p><p>&copy; @DateTime.Now.Year ActiveCommunity Sports Council</p></div><div><a href="@Url.Action("About", "Home")">About us</a><a href="@Url.Action("Create", "Inquiries")">Get in touch</a></div></div></footer>
+@Scripts.Render("~/bundles/jquery")
+@Scripts.Render("~/bundles/bootstrap")
+<script src="@Url.Content("~/Scripts/site.js")?v=@scriptVersion"></script>
+@RenderSection("scripts", required: false)
 </body>
 </html>

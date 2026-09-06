@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -50,6 +50,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "FacilityTypeID,TypeName,Description,IsActive")] FacilityType facilityType)
         {
+            if (db.FacilityTypes.Any(t => t.TypeName == facilityType.TypeName && t.FacilityTypeID != facilityType.FacilityTypeID)) ModelState.AddModelError("TypeName", "A facility type with this name already exists.");
             if (ModelState.IsValid)
             {
                 db.FacilityTypes.Add(facilityType);
@@ -82,6 +83,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "FacilityTypeID,TypeName,Description,IsActive")] FacilityType facilityType)
         {
+            if (db.FacilityTypes.Any(t => t.TypeName == facilityType.TypeName && t.FacilityTypeID != facilityType.FacilityTypeID)) ModelState.AddModelError("TypeName", "A facility type with this name already exists.");
             if (ModelState.IsValid)
             {
                 db.Entry(facilityType).State = EntityState.Modified;
@@ -112,7 +114,8 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             FacilityType facilityType = db.FacilityTypes.Find(id);
-            db.FacilityTypes.Remove(facilityType);
+            if (facilityType == null) return HttpNotFound();
+            facilityType.IsActive = false;
             db.SaveChanges();
             return RedirectToAction("Index");
         }

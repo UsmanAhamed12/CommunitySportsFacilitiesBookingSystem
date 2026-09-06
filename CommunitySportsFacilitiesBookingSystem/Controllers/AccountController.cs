@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Web.Helpers;
 using System.Web.Mvc;
@@ -35,7 +35,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            string email = model.Email.Trim().ToLower();
+            string email = model.Email.Trim().ToLowerInvariant();
 
             if (db.Members.Any(m => m.Email.ToLower() == email))
             {
@@ -44,46 +44,57 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
                 return View(model);
             }
 
-            var member = new Member
+            var selectedSports = (model.SelectedSportIDs ??
+                new System.Collections.Generic.List<int>())
+                .Distinct()
+                .Where(id => db.Sports.Any(s => s.SportID == id && s.IsActive))
+                .ToList();
+
+            if (!selectedSports.Any())
             {
-                FirstName = model.FirstName.Trim(),
-                LastName = model.LastName.Trim(),
-                Email = email,
-                PasswordHash = Crypto.HashPassword(model.Password),
-                Phone = model.Phone.Trim(),
-                AddressLine = model.AddressLine.Trim(),
-                City = model.City.Trim(),
-                PostalCode = model.PostalCode?.Trim(),
-                RegisteredAt = DateTime.Now,
-                IsActive = true,
-                UserRole = "Member"
-            };
-
-            db.Members.Add(member);
-            db.SaveChanges();
-
-            var selectedSports = model.SelectedSportIDs ??
-                                 new System.Collections.Generic.List<int>();
-
-            bool firstSport = true;
-
-            foreach (int sportID in selectedSports.Distinct())
-            {
-                if (!db.Sports.Any(s => s.SportID == sportID && s.IsActive))
-                    continue;
-
-                db.MemberSports.Add(new MemberSport
-                {
-                    MemberID = member.MemberID,
-                    SportID = sportID,
-                    IsPrimaryPreference = firstSport,
-                    SelectedAt = DateTime.Now
-                });
-
-                firstSport = false;
+                ModelState.AddModelError("SelectedSportIDs",
+                    "Select at least one preferred sport.");
+                return View(model);
             }
 
-            db.SaveChanges();
+            using (var transaction = db.Database.BeginTransaction())
+            {
+                var member = new Member
+                {
+                    FirstName = model.FirstName.Trim(),
+                    LastName = model.LastName.Trim(),
+                    Email = email,
+                    PasswordHash = Crypto.HashPassword(model.Password),
+                    Phone = model.Phone.Trim(),
+                    AddressLine = model.AddressLine.Trim(),
+                    City = model.City.Trim(),
+                    PostalCode = model.PostalCode?.Trim(),
+                    RegisteredAt = DateTime.Now,
+                    IsActive = true,
+                    UserRole = "Member"
+                };
+
+                db.Members.Add(member);
+                db.SaveChanges();
+
+                bool firstSport = true;
+
+                foreach (int sportID in selectedSports)
+                {
+                    db.MemberSports.Add(new MemberSport
+                    {
+                        MemberID = member.MemberID,
+                        SportID = sportID,
+                        IsPrimaryPreference = firstSport,
+                        SelectedAt = DateTime.Now
+                    });
+
+                    firstSport = false;
+                }
+
+                db.SaveChanges();
+                transaction.Commit();
+            }
 
             TempData["SuccessMessage"] =
                 "Registration successful. You can now sign in.";
@@ -92,19 +103,21 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         }
 
         [HttpGet]
-        public ActionResult Login()
+        public ActionResult Login(string returnUrl)
         {
+            ViewBag.ReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : null;
             return View(new LoginViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(LoginViewModel model)
+        public ActionResult Login(LoginViewModel model, string returnUrl)
         {
+            ViewBag.ReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : null;
             if (!ModelState.IsValid)
                 return View(model);
 
-            string email = model.Email.Trim().ToLower();
+            string email = model.Email.Trim().ToLowerInvariant();
 
             var member = db.Members.FirstOrDefault(m =>
                 m.Email.ToLower() == email && m.IsActive);
@@ -131,12 +144,14 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
                 return View(model);
             }
 
+            Session.Clear();
             Session["MemberID"] = member.MemberID;
             Session["MemberName"] =
                 member.FirstName + " " + member.LastName;
             Session["MemberEmail"] = member.Email;
             Session["UserRole"] = member.UserRole;
 
+            if (Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
             return RedirectToAction("Index", "Home");
         }
 
@@ -149,6 +164,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
 
             TempData["SuccessMessage"] =
                 "You have been signed out successfully.";
+
 
             return RedirectToAction("Index", "Home");
         }

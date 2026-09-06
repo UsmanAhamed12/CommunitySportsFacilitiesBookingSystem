@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -52,6 +52,8 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "ScheduleID,FacilityID,DayOfWeek,OpeningTime,ClosingTime,IsAvailable")] FacilitySchedule facilitySchedule)
         {
+            if (db.FacilitySchedules.Any(s => s.FacilityID == facilitySchedule.FacilityID && s.DayOfWeek == facilitySchedule.DayOfWeek && s.ScheduleID != facilitySchedule.ScheduleID)) ModelState.AddModelError("", "Opening hours already exist for this facility and day. Edit the existing schedule.");
+            if (!db.Facilities.Any(f => f.FacilityID == facilitySchedule.FacilityID)) ModelState.AddModelError("FacilityID", "Choose an existing facility.");
             if (ModelState.IsValid)
             {
                 db.FacilitySchedules.Add(facilitySchedule);
@@ -86,6 +88,8 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "ScheduleID,FacilityID,DayOfWeek,OpeningTime,ClosingTime,IsAvailable")] FacilitySchedule facilitySchedule)
         {
+            if (db.FacilitySchedules.Any(s => s.FacilityID == facilitySchedule.FacilityID && s.DayOfWeek == facilitySchedule.DayOfWeek && s.ScheduleID != facilitySchedule.ScheduleID)) ModelState.AddModelError("", "Opening hours already exist for this facility and day. Edit the existing schedule.");
+            if (!db.Facilities.Any(f => f.FacilityID == facilitySchedule.FacilityID)) ModelState.AddModelError("FacilityID", "Choose an existing facility.");
             if (ModelState.IsValid)
             {
                 db.Entry(facilitySchedule).State = EntityState.Modified;
@@ -117,6 +121,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             FacilitySchedule facilitySchedule = db.FacilitySchedules.Find(id);
+            if (facilitySchedule == null) return HttpNotFound();
             db.FacilitySchedules.Remove(facilitySchedule);
             db.SaveChanges();
             return RedirectToAction("Index");

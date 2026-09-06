@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -50,6 +50,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "SportID,SportName,Description,IsActive")] Sport sport)
         {
+            if (db.Sports.Any(s => s.SportName == sport.SportName && s.SportID != sport.SportID)) ModelState.AddModelError("SportName", "A sport with this name already exists.");
             if (ModelState.IsValid)
             {
                 db.Sports.Add(sport);
@@ -82,6 +83,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "SportID,SportName,Description,IsActive")] Sport sport)
         {
+            if (db.Sports.Any(s => s.SportName == sport.SportName && s.SportID != sport.SportID)) ModelState.AddModelError("SportName", "A sport with this name already exists.");
             if (ModelState.IsValid)
             {
                 db.Entry(sport).State = EntityState.Modified;
@@ -112,7 +114,8 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             Sport sport = db.Sports.Find(id);
-            db.Sports.Remove(sport);
+            if (sport == null) return HttpNotFound();
+            sport.IsActive = false;
             db.SaveChanges();
             return RedirectToAction("Index");
         }

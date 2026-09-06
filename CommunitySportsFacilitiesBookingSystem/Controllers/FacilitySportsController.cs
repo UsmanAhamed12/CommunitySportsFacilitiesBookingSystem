@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -53,8 +53,11 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "FacilitySportID,FacilityID,SportID,IsPrimarySport,AddedAt")] FacilitySport facilitySport)
         {
+            if (db.FacilitySports.Any(s => s.FacilityID == facilitySport.FacilityID && s.SportID == facilitySport.SportID && s.FacilitySportID != facilitySport.FacilitySportID)) ModelState.AddModelError("", "This sport is already assigned to the facility.");
+            if (!db.Facilities.Any(f => f.FacilityID == facilitySport.FacilityID) || !db.Sports.Any(s => s.SportID == facilitySport.SportID)) ModelState.AddModelError("", "Choose an existing facility and sport.");
             if (ModelState.IsValid)
             {
+                facilitySport.AddedAt = DateTime.Now;
                 db.FacilitySports.Add(facilitySport);
                 db.SaveChanges();
                 return RedirectToAction("Index");
@@ -89,6 +92,8 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "FacilitySportID,FacilityID,SportID,IsPrimarySport,AddedAt")] FacilitySport facilitySport)
         {
+            if (db.FacilitySports.Any(s => s.FacilityID == facilitySport.FacilityID && s.SportID == facilitySport.SportID && s.FacilitySportID != facilitySport.FacilitySportID)) ModelState.AddModelError("", "This sport is already assigned to the facility.");
+            if (!db.Facilities.Any(f => f.FacilityID == facilitySport.FacilityID) || !db.Sports.Any(s => s.SportID == facilitySport.SportID)) ModelState.AddModelError("", "Choose an existing facility and sport.");
             if (ModelState.IsValid)
             {
                 db.Entry(facilitySport).State = EntityState.Modified;
@@ -121,6 +126,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             FacilitySport facilitySport = db.FacilitySports.Find(id);
+            if (facilitySport == null) return HttpNotFound();
             db.FacilitySports.Remove(facilitySport);
             db.SaveChanges();
             return RedirectToAction("Index");

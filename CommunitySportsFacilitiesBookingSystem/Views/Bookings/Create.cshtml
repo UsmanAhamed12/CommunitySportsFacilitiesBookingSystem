@@ -1,121 +1,29 @@
-﻿@model CommunitySportsFacilitiesBookingSystem.ViewModels.BookingCreateViewModel
-
-@{
-    ViewBag.Title = "Book Facility";
-}
-
-<div class="container">
+@model CommunitySportsFacilitiesBookingSystem.ViewModels.BookingCreateViewModel
+@using CommunitySportsFacilitiesBookingSystem.Models
+@{ ViewBag.Title = "Request a booking"; var schedules = ViewBag.Schedules as IEnumerable<FacilitySchedule> ?? Enumerable.Empty<FacilitySchedule>(); }
+<div class="page-header"><div class="eyebrow">Make room for your next game</div><h2>Book your space.</h2><p>Choose your session. Review the estimate. Send your request.</p></div>
+<div class="booking-layout">
+<section class="surface">
+@using (Html.BeginForm()) {
+    @Html.AntiForgeryToken() @Html.HiddenFor(m => m.FacilityID)
+    @Html.ValidationSummary(false, "", new { @class = "text-danger", role = "alert" })
+    <div class="form-group">@Html.LabelFor(m => m.BookingDate)@Html.TextBoxFor(m => m.BookingDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", min = DateTime.Today.ToString("yyyy-MM-dd") })</div>
     <div class="row">
-        <div class="col-md-7 col-md-offset-2">
-            <h2>Book a Sports Facility</h2>
-
-            <div class="alert alert-info">
-                <strong>Selected facility:</strong>
-                @Model.FacilityName
-            </div>
-
-            @using (Html.BeginForm())
-            {
-                @Html.AntiForgeryToken()
-                @Html.HiddenFor(m => m.FacilityID)
-                @Html.HiddenFor(m => m.FacilityName)
-
-                @Html.ValidationSummary(
-                    true,
-                    "",
-                    new { @class = "text-danger" })
-
-                <div class="form-group">
-                    @Html.LabelFor(m => m.BookingDate)
-                    @Html.TextBoxFor(
-                        m => m.BookingDate,
-                        "{0:yyyy-MM-dd}",
-                        new
-                        {
-                            @class = "form-control",
-                            type = "date"
-                        })
-                    @Html.ValidationMessageFor(
-                        m => m.BookingDate,
-                        "",
-                        new { @class = "text-danger" })
-                </div>
-
-                <div class="form-group">
-                    @Html.LabelFor(m => m.StartTime)
-                    @Html.TextBoxFor(
-                        m => m.StartTime,
-                        "{0:hh\\:mm}",
-                        new
-                        {
-                            @class = "form-control",
-                            type = "time"
-                        })
-                    @Html.ValidationMessageFor(
-                        m => m.StartTime,
-                        "",
-                        new { @class = "text-danger" })
-                </div>
-
-                <div class="form-group">
-                    @Html.LabelFor(m => m.EndTime)
-                    @Html.TextBoxFor(
-                        m => m.EndTime,
-                        "{0:hh\\:mm}",
-                        new
-                        {
-                            @class = "form-control",
-                            type = "time"
-                        })
-                    @Html.ValidationMessageFor(
-                        m => m.EndTime,
-                        "",
-                        new { @class = "text-danger" })
-                </div>
-
-                <div class="form-group">
-                    @Html.LabelFor(m => m.NumberOfParticipants)
-                    @Html.TextBoxFor(
-                        m => m.NumberOfParticipants,
-                        new
-                        {
-                            @class = "form-control",
-                            type = "number",
-                            min = "1"
-                        })
-                    @Html.ValidationMessageFor(
-                        m => m.NumberOfParticipants,
-                        "",
-                        new { @class = "text-danger" })
-                </div>
-
-                <div class="form-group">
-                    @Html.LabelFor(m => m.Purpose)
-                    @Html.TextAreaFor(
-                        m => m.Purpose,
-                        new
-                        {
-                            @class = "form-control",
-                            rows = "3",
-                            placeholder = "Optional booking purpose"
-                        })
-                </div>
-
-                <button type="submit" class="btn btn-success">
-                    Confirm Booking
-                </button>
-
-                @Html.ActionLink(
-                    "Back to Facilities",
-                    "Index",
-                    "Facilities",
-                    null,
-                    new { @class = "btn btn-default" })
-            }
-        </div>
+        <div class="col-sm-6 form-group">@Html.LabelFor(m => m.StartTime)@Html.TextBoxFor(m => m.StartTime, "{0:hh\\:mm}", new { @class = "form-control", type = "time" })</div>
+        <div class="col-sm-6 form-group">@Html.LabelFor(m => m.EndTime)@Html.TextBoxFor(m => m.EndTime, "{0:hh\\:mm}", new { @class = "form-control", type = "time" })</div>
     </div>
-</div>
-
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
+    <div class="form-group">@Html.LabelFor(m => m.NumberOfParticipants)@Html.TextBoxFor(m => m.NumberOfParticipants, new { @class = "form-control", type = "number", min = 1, max = Model.Capacity })<p class="help-block">Up to @Model.Capacity people, including you.</p></div>
+    <div class="form-group">@Html.LabelFor(m => m.Purpose)@Html.TextAreaFor(m => m.Purpose, new { @class = "form-control", rows = 3, maxlength = 250, placeholder = "Optional: a friendly match, team practice..." })</div>
+    <button type="submit" class="btn btn-primary">Request booking &rarr;</button>
+    <a class="btn btn-default" href="@Url.Action("Details", "Facilities", new { id = Model.FacilityID })">Back to facility</a>
 }
+</section>
+<aside class="surface booking-summary"><div class="eyebrow">Your session</div><h3>@Model.FacilityName</h3><p>LKR @Model.HourlyRate.ToString("N2") per hour &middot; @Model.Capacity people</p>
+<h4>Opening hours</h4>
+@foreach (var schedule in schedules) { <p style="margin-bottom:5px"><strong>@(schedule.DayOfWeek == 7 ? "Sunday" : ((DayOfWeek)schedule.DayOfWeek).ToString())</strong> &nbsp; @(schedule.IsAvailable ? schedule.OpeningTime.ToString(@"hh\:mm") + " - " + schedule.ClosingTime.ToString(@"hh\:mm") : "Closed")</p> }
+@if (!schedules.Any()) { <p>Opening hours have not been published. Please contact the council.</p> }
+<div class="summary-total"><small>Estimated session cost</small><output id="booking-estimate" data-rate="@Model.HourlyRate.ToString(System.Globalization.CultureInfo.InvariantCulture)" aria-live="polite">Choose your time</output></div>
+<p class="help-block">Your request is pending until the council confirms it. No online payment is collected.</p>
+</aside>
+</div>
+@section Scripts { @Scripts.Render("~/bundles/jqueryval") }

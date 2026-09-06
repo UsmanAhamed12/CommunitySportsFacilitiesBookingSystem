@@ -1,4 +1,4 @@
-﻿@model CommunitySportsFacilitiesBookingSystem.ViewModels.RegisterViewModel
+@model CommunitySportsFacilitiesBookingSystem.ViewModels.RegisterViewModel
 
 @{
     ViewBag.Title = "Become a Member";
@@ -6,8 +6,8 @@
         IEnumerable<CommunitySportsFacilitiesBookingSystem.Models.Sport>;
 }
 
-<div class="container">
-    <h2>Become a Community Sports Member</h2>
+<div class="surface">
+    <h2>Find your people. Make your game.</h2>
     <p>Register to search facilities, make bookings and submit reviews.</p>
 
     @using (Html.BeginForm())
@@ -91,6 +91,8 @@
 
                 <div class="form-group">
                     <label>Preferred Sports</label>
+                    @Html.ValidationMessageFor(m => m.SelectedSportIDs, "",
+                        new { @class = "text-danger" })
 
                     @if (sports != null)
                     {
@@ -100,7 +102,8 @@
                                 <label>
                                     <input type="checkbox"
                                            name="SelectedSportIDs"
-                                           value="@sport.SportID" />
+                                           value="@sport.SportID"
+                                           @(Model.SelectedSportIDs != null && Model.SelectedSportIDs.Contains(sport.SportID) ? "checked=\"checked\"" : "") />
                                     @sport.SportName
                                 </label>
                             </div>

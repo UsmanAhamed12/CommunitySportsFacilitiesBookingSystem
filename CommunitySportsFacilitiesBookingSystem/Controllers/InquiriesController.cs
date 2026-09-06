@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -113,17 +113,20 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [AdminAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "InquiryID,SenderName,SenderEmail,SenderPhone,InquirySubject,InquiryMessage,SubmittedAt,InquiryStatus,ResponseMessage,RespondedAt")] Inquiry inquiry)
+        public ActionResult Edit(int inquiryID, string inquiryStatus, string responseMessage)
         {
-            if (ModelState.IsValid)
-            {
-                db.Entry(inquiry).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            return View(inquiry);
+            var inquiry = db.Inquiries.Find(inquiryID);
+            if (inquiry == null) return HttpNotFound();
+            if (!new[] { "New", "InProgress", "Resolved", "Closed" }.Contains(inquiryStatus)) ModelState.AddModelError("", "Choose a valid inquiry status.");
+            if (responseMessage != null && responseMessage.Length > 1000) ModelState.AddModelError("", "Keep the response within 1,000 characters.");
+            if (inquiryStatus == "Resolved" && string.IsNullOrWhiteSpace(responseMessage)) ModelState.AddModelError("", "Enter a response before marking this inquiry responded.");
+            if (!ModelState.IsValid) return View(inquiry);
+            inquiry.InquiryStatus = inquiryStatus;
+            inquiry.ResponseMessage = responseMessage;
+            inquiry.RespondedAt = string.IsNullOrWhiteSpace(responseMessage) ? (DateTime?)null : DateTime.Now;
+            db.SaveChanges(); TempData["SuccessMessage"] = "Inquiry updated. Responses are recorded here; no email is sent automatically.";
+            return RedirectToAction("Index");
         }
-
         // GET: Inquiries/Delete/5
         [AdminAuthorize]
         public ActionResult Delete(int? id)
@@ -147,6 +150,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             Inquiry inquiry = db.Inquiries.Find(id);
+            if (inquiry == null) return HttpNotFound();
             db.Inquiries.Remove(inquiry);
             db.SaveChanges();
             return RedirectToAction("Index");

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -25,6 +25,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
             TimeSpan? endTime)
         {
             bool isMember = Session["MemberID"] != null;
+            bool isAdmin = Convert.ToString(Session["UserRole"]) == "Admin";
 
             // Guests receive the broad search required by the coursework.
             // Date/time availability is a member-only search feature.
@@ -38,7 +39,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
             var facilities = db.Facilities
                 .Include(f => f.FacilityType)
                 .Include(f => f.FacilitySports)
-                .Where(f => f.IsActive);
+                .Where(f => f.IsActive || isAdmin);
 
             if (!string.IsNullOrWhiteSpace(city))
             {
@@ -69,7 +70,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
                 {
                     ViewBag.SearchError = "The availability date cannot be in the past.";
                 }
-                else if (endTime.Value <= startTime.Value)
+                else if (startTime.Value < TimeSpan.Zero || endTime.Value >= TimeSpan.FromDays(1) || endTime.Value <= startTime.Value)
                 {
                     ViewBag.SearchError = "End time must be later than start time.";
                 }
@@ -100,6 +101,9 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
                 ViewBag.SearchError =
                     "Choose a date, start time and end time to check availability.";
             }
+
+            if (!ModelState.IsValid) ViewBag.SearchError = "Enter a valid date and time for your search.";
+            if (ViewBag.SearchError != null) facilities = facilities.Where(f => false);
 
             ViewBag.FacilityTypes = new SelectList(
                 db.FacilityTypes.Where(t => t.IsActive),
@@ -159,8 +163,10 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(Facility facility)
         {
+            if (!db.FacilityTypes.Any(t => t.FacilityTypeID == facility.FacilityTypeID)) ModelState.AddModelError("FacilityTypeID", "Choose an existing facility type.");
             if (ModelState.IsValid)
             {
+                facility.CreatedAt = DateTime.Now;
                 db.Facilities.Add(facility);
                 db.SaveChanges();
                 return RedirectToAction("Index");
@@ -195,6 +201,7 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(Facility facility)
         {
+            if (!db.FacilityTypes.Any(t => t.FacilityTypeID == facility.FacilityTypeID)) ModelState.AddModelError("FacilityTypeID", "Choose an existing facility type.");
             if (ModelState.IsValid)
             {
                 db.Entry(facility).State = EntityState.Modified;
@@ -228,7 +235,8 @@ namespace CommunitySportsFacilitiesBookingSystem.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             Facility facility = db.Facilities.Find(id);
-            db.Facilities.Remove(facility);
+            if (facility == null) return HttpNotFound();
+            facility.IsActive = false;
             db.SaveChanges();
             return RedirectToAction("Index");
         }
